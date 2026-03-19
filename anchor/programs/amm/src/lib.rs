@@ -6,11 +6,14 @@ mod tests;
 
 pub mod instructions;
 pub mod state;
+pub mod error;
+
 
 
 
 pub use instructions::*;
 pub use state::*;
+pub use error::*;
 
 declare_id!("6uN6r125EwMdqmbW5bDPUXoWSDdUQ79Bbv5JZksB4Gjf");
 

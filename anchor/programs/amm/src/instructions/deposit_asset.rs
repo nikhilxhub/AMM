@@ -1,12 +1,11 @@
 use anchor_lang::prelude::*;
-use crate::{error::AMMError, state::Config};
+use crate::{state::Config};
 
 use anchor_spl::{
     associated_token::AssociatedToken,
-    token::{mint_to, transfer, Mint, MintTo, Token, TokenAccount, Transfer}
+    token::{ Mint, Token, TokenAccount}
 };
 
-use constant_product_curve::ConstantProduct;
 
 #[derive(Accounts)]
 pub struct Deposit<'info> {
@@ -17,7 +16,7 @@ pub struct Deposit<'info> {
     pub mint_y:Account<'info,Mint>,
 
     #[account(
-        seeds = [b"config", config.seed.to_le_buytes().as_ref()],
+        seeds = [b"config", config.seed.to_le_bytes().as_ref()],
         bump = config.config_bump,
         has_one = mint_x,
         has_one = mint_y,
@@ -26,8 +25,8 @@ pub struct Deposit<'info> {
 
     #[account(
         mut,
-        seeds = [b"lp", conig.key().as_ref()],
-        bump = conig.lp_bump,
+        seeds = [b"lp", config.key().as_ref()],
+        bump = config.lp_bump,
     )]
     pub mint_lp:Account<'info, Mint>,
 
@@ -85,5 +84,7 @@ impl<'info> Deposit<'info>{
     ) -> Result<()> {
 
         
+
+        Ok(())
     }
 }
