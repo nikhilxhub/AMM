@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use crate::{state::Config};
+use crate::{state::Config, error::AMMError};
 
 use anchor_spl::{
     associated_token::AssociatedToken,
@@ -82,6 +82,31 @@ impl<'info> Deposit<'info>{
         max_x: u64,
         max_y: u64,
     ) -> Result<()> {
+
+        require!(self.config.locked == false, AMMError::PoolLocked);
+        require!(amount != 0, AMMError::InvalidAmount);
+
+        let (x,y) = match 
+        self.mint_lp.supply == 0
+        && self.vault_x.amount == 0
+        && self.vault_y.amount == 0
+        {
+            true => (max_x, max_y),
+            false =>{
+                let amounts = ConstantProduct::xy_deposit_amounts_from_l(
+                    self.vault_x.amount,
+                    self.vault_y.amount,
+                    self.mint_lp.supply,
+                    amount,
+                    6
+                ).map_err(AMMError::from)?;
+                (amounts.x, amounts.y)
+            }
+        };
+
+        require!(x <= max_x && y <= max_y, AMMError::SlippageExceeded);
+        
+
 
         
 
