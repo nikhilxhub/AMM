@@ -7,6 +7,8 @@ use anchor_spl::{
 };
 
 
+use constant_product_curve::ConstantProduct;
+
 #[derive(Accounts)]
 pub struct Deposit<'info> {
     #[account(mut)]
@@ -105,10 +107,28 @@ impl<'info> Deposit<'info>{
         };
 
         require!(x <= max_x && y <= max_y, AMMError::SlippageExceeded);
+
+        self.deposit_tokens(true, x)?;
+        self.deposit_tokens(false, y)?;
+        self.mint_lp_tokens(amount)?;
         
 
 
         
+
+        Ok(())
+    }
+
+    pub fn deposit_tokens(&mut self, is_x: bool,amount:u64) -> Result<()>{
+
+
+
+        Ok(())   
+    }
+
+    pub fn mint_lp_tokens(&mut self, amount: u64) -> Result<()> {
+
+
 
         Ok(())
     }
