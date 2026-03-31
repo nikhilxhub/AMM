@@ -2,7 +2,9 @@ use anchor_lang::prelude::*;
 use anchor_spl::{associated_token::AssociatedToken, token::{Mint, Token, TokenAccount}};
 
 use crate::{state::Config};
+use crate::{ error::AMMError};
 
+use constant_product_curve::{ConstantProduct, LiquidityPair};
 
 #[derive(Accounts)]
 pub struct Swap<'info> {
@@ -74,8 +76,52 @@ impl<'info> Swap<'info> {
         min: u64
     ) -> Result<()>{
 
+        require!(self.config.locked == false, AMMError::PoolLocked);
+        require!(amount != 0, AMMError::InvalidAmount);
+
+        let mut curve = ConstantProduct::init(
+            self.vault_x.amount,
+            self.vault_y.amount,
+            self.mint_lp.supply,
+            self.config.fee,
+            Some(6)
+
+        ).map_err(AMMError::from)?;
+
+        let pair = match is_x {
+            true => LiquidityPair::X,
+            false => LiquidityPair::Y
+        };
+
+        let response = curve.swap(pair, amount, min).map_err(AMMError::from)?;
+
+        require!(response.deposit != 0 && response.withdraw != 0, AMMError::InvalidAmount);
+
+        self.deposit_token(is_x, response.deposit)?;
+        self.withdraw_token(!is_x, response.withdraw)?;
+
 
         Ok(())
 
+    }
+
+    pub fn deposit_token(
+        &mut self,
+        is_x:bool,
+        amount:u64
+    ) -> Result<()>{
+
+
+        Ok(())
+    }
+
+    pub fn withdraw_token(
+        &mut self,
+        is_x: bool,
+        amount: u64
+    ) -> Result<()>{
+
+
+        Ok(())
     }
 }
