@@ -1,5 +1,9 @@
 use anchor_lang::prelude::*;
-use anchor_spl::{associated_token::AssociatedToken, token::{Mint, Token, TokenAccount}};
+use anchor_spl::{
+    associated_token::AssociatedToken, 
+    token::{Mint, Token, TokenAccount, Transfer, transfer},
+
+};
 
 use crate::{state::Config};
 use crate::{ error::AMMError};
@@ -111,8 +115,24 @@ impl<'info> Swap<'info> {
         amount:u64
     ) -> Result<()>{
 
+        let (from, to) = match is_x {
+            true => (self.user_x.to_account_info(), self.vault_x.to_account_info()),
+            false => (self.user_y.to_account_info(), self.vault_y.to_account_info())
 
-        Ok(())
+        };
+
+        let cpi_program = self.token_program.to_account_info();
+
+        let cpi_accounts = Transfer {
+            from,
+            to,
+            authority: self.user.to_account_info()
+        };
+
+        let ctx = CpiContext::new(cpi_program, cpi_accounts);
+
+        transfer(ctx, amount)
+
     }
 
     pub fn withdraw_token(
@@ -122,6 +142,31 @@ impl<'info> Swap<'info> {
     ) -> Result<()>{
 
 
-        Ok(())
+        let (from, to) = match is_x {
+            true => (self.vault_x.to_account_info(), self.user_x.to_account_info()),
+            false => (self.vault_y.to_account_info(), self.user_y.to_account_info)
+        };
+
+        let cpi_program = self.token_program.to_account_info();
+
+        let cpi_accounts = Transfer {
+            from,
+            to,
+            authority:self.config.to_account_info()
+        };
+
+
+        let seeds = &[
+            &b"config"[..],
+            &self.config.seed.to_le_bytes(),
+            &[self.config.config_bump]
+        ];
+
+        let signer_seeds = &[&seeds[..]];
+
+        let ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
+
+        transfer(ctx,amount)
+
     }
 }
