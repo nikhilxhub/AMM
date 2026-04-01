@@ -144,7 +144,7 @@ impl<'info> Swap<'info> {
 
         let (from, to) = match is_x {
             true => (self.vault_x.to_account_info(), self.user_x.to_account_info()),
-            false => (self.vault_y.to_account_info(), self.user_y.to_account_info)
+            false => (self.vault_y.to_account_info(), self.user_y.to_account_info())
         };
 
         let cpi_program = self.token_program.to_account_info();
