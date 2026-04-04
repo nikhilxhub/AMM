@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
-use crate::{ state::Config };
+use constant_product_curve::ConstantProduct;
+use crate::{ state::Config, error::AMMError };
 use anchor_spl::{associated_token::AssociatedToken, token::{ Mint, Token, TokenAccount }};
 
 
@@ -75,7 +76,35 @@ impl<'info> Withdraw<'info> {
     ) -> Result<()> {
 
 
+        require!(self.config.locked == false, AMMError::PoolLocked);
+        require!(amount != 0, AMMError::InvalidAmount);
+
+        let amounts = ConstantProduct::xy_withdraw_amounts_from_l(self.vault_x.amount, self.vault_y.amount, self.mint_lp.supply, amount, 6).map_err(AMMError::from)?;
+
+        require!(amounts.x >= min_x && amounts.y >= min_y, AMMError::SlippageExceeded);
+
+        self.withdraw_tokens(true, amounts.x)?;
+        self.withdraw_tokens(false, amounts.y);
+
+        self.burn_lp_tokens(amount)?;
+
+
 
         Ok(())
     }
-}
+
+    pub fn withdraw_tokens(
+        &mut self,
+        is_x: bool,
+        amount: u64
+    ) -> Result<()> {
+
+        Ok(())
+    }
+
+
+    pub fn burn_lp_tokens(&mut self, amount: u64) -> Result<()>{
+
+        Ok(())
+    }
+ }
