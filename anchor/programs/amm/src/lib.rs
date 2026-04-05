@@ -56,6 +56,17 @@ pub mod amm {
 
         Ok(())
     }
+
+    pub fn lock(ctx: Context<Update>) -> Result<()>{
+        ctx.accounts.lock()?;
+        Ok(())
+    }
+
+    pub fn unlock(ctx: Context<Update>) -> Result<()>{
+        ctx.accounts.unlock()?;
+
+        Ok(())
+    }
     
    
 }
