@@ -1,7 +1,13 @@
 use anchor_lang::prelude::*;
 use constant_product_curve::ConstantProduct;
 use crate::{ state::Config, error::AMMError };
-use anchor_spl::{associated_token::AssociatedToken, token::{ Mint, Token, TokenAccount }};
+use anchor_spl::{
+    associated_token::AssociatedToken, 
+    token::{ 
+        Mint, Token, TokenAccount,Transfer, transfer,
+        burn, Burn
+    }
+};
 
 
 
@@ -45,6 +51,13 @@ pub struct Withdraw<'info> {
         associated_token::authority = config
     )]
     pub vault_y: Account<'info, TokenAccount>,
+
+    #[account(
+        mut, 
+        associated_token::mint = mint_x,
+        associated_token::authority = user
+    )]
+    pub user_x: Account<'info, TokenAccount>,
 
     #[account(
         mut,
@@ -99,12 +112,47 @@ impl<'info> Withdraw<'info> {
         amount: u64
     ) -> Result<()> {
 
-        Ok(())
+        let (from, to) = match is_x {
+            true => (self.vault_x.to_account_info(), self.user_x.to_account_info()),
+            false => (self.vault_y.to_account_info(), self.user_y.to_account_info())
+        };
+
+        let cpi_program = self.token_program.to_account_info();
+        let cpi_accounts = Transfer {
+            from,
+            to,
+            authority: self.config.to_account_info()
+        };
+
+        let seeds = &[
+            &b"config"[..],
+            &self.config.seed.to_le_bytes(),
+            &[self.config.config_bump]
+        ];
+
+        let signer_seeds = &[&seeds[..]];
+        let ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
+
+
+        transfer(ctx, amount)
+
     }
 
 
     pub fn burn_lp_tokens(&mut self, amount: u64) -> Result<()>{
 
-        Ok(())
+        let cpi_program = self.token_program.to_account_info();
+        
+        let cpi_accounts = Burn {
+            mint: self.mint_lp.to_account_info(),
+            from: self.user_lp.to_account_info(),
+            authority: self.user.to_account_info()
+        };
+
+        let ctx = CpiContext::new(cpi_program, cpi_accounts);
+
+        burn(ctx, amount)
+
+
     }
  }
