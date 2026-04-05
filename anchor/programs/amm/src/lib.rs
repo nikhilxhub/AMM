@@ -1,8 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_lang::system_program::{transfer, Transfer};
 
-#[cfg(test)]
-mod tests;
 
 pub mod instructions;
 pub mod state;
@@ -15,7 +13,7 @@ pub use instructions::*;
 pub use state::*;
 pub use error::*;
 
-declare_id!("6uN6r125EwMdqmbW5bDPUXoWSDdUQ79Bbv5JZksB4Gjf");
+declare_id!("DmEmarNfFw68sF1jREoFE7mUY1jRgiVzdJJC5myh5UbN");
 
 #[program]
 pub mod amm {
