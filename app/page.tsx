@@ -63,8 +63,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Vault Program Section */}
-        <VaultCard />
+
       </main>
     </div>
   );
